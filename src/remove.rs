@@ -1,7 +1,10 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 
-pub fn remove_files(paths: &[&PathBuf]) {
+pub fn remove_files<P>(paths: &[P])
+where
+    P: AsRef<Path>,
+{
     for path in paths {
         fs::remove_file(path).expect("destory file");
     }
@@ -9,14 +12,14 @@ pub fn remove_files(paths: &[&PathBuf]) {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
+    use std::path::PathBuf;
     use tempfile::NamedTempFile;
 
     #[test]
     fn destroy_single_file() {
         let (_file, path) = get_new_tempfile_and_pathbuf();
-        let paths = vec![&path];
+        let paths: Vec<&Path> = vec![&path];
         remove_files(&paths);
         assert_path_deleted(&path);
     }
@@ -31,8 +34,7 @@ mod tests {
             files.push(file);
             paths.push(path);
         }
-        let pathrefs: Vec<&PathBuf> = paths.iter().collect();
-        remove_files(&pathrefs);
+        remove_files(&paths);
         assert_multi_paths_deleted(&paths);
     }
 
@@ -48,7 +50,7 @@ mod tests {
         }
     }
 
-    fn assert_path_deleted(path: &PathBuf) {
+    fn assert_path_deleted(path: &Path) {
         assert_eq!(false, path.exists());
     }
 }
